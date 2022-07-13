@@ -43,6 +43,18 @@ contract KYC {
         _;
     }
 
+    modifier customerExists(string memory _name) {
+        require(
+            customers[_name].bank != address(0), //if bank of customer is not empty then customer is present
+            "customer does not exists"
+        );
+        _;
+    }
+
+    modifier bankExists(address _bankAddress){
+            require(banks[_bankAddress].bankAddress != address(0), "Bank not found");
+            _;
+    }
 
     function addKYCRequest(string memory _userName, string memory _data) public {
         require(kycRequests[_userName].bankAddress == address(0), "Users KYC request already exists.");
@@ -88,8 +100,8 @@ contract KYC {
 
 
         if(totalBanks >=5){
-            uint256 percentage = (customers[_userName].downVotes / totalBanks) * 100;
-            customers[_userName].kycStatus = percentage >=33;
+           
+            customers[_userName].kycStatus = customers[_userName].downVotes < (totalBanks / 3);
             
         }else{
             customers[_userName].kycStatus = customers[_userName].upVotes > customers[_userName].downVotes;
@@ -99,11 +111,11 @@ contract KYC {
     
     function downVoteCustomer(string memory _userName) public {
         require(customers[_userName].bank != address(0), "Customer not found");
-        customers[_userName].upVotes -= 1;
+        customers[_userName].downVotes += 1;
 
         if(totalBanks >=5){
-            uint256 percentage = (customers[_userName].downVotes / totalBanks) * 100;
-            customers[_userName].kycStatus = percentage >=33;
+            
+            customers[_userName].kycStatus = customers[_userName].downVotes < (totalBanks / 3);
             
         }else{
             customers[_userName].kycStatus = customers[_userName].upVotes > customers[_userName].downVotes;
