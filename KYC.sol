@@ -43,9 +43,9 @@ contract KYC {
         _;
     }
 
-    modifier customerExists(string memory _name) {
+    modifier customerExists(string memory _userName) {
         require(
-            customers[_name].bank != address(0), //if bank of customer is not empty then customer is present
+            customers[_userName].bank != address(0), //if bank of customer is not empty then customer is present
             "customer does not exists"
         );
         _;
@@ -71,7 +71,7 @@ contract KYC {
         delete kycRequests[_userName];
     }
 
-    function addCustomer(string memory _userName, string memory _data) public {
+    function addCustomer(string memory _userName, string memory _data) public  {
         require(customers[_userName].bank == address(0), "Customer already exists");
 
         customers[_userName].userName = _userName;
@@ -81,40 +81,31 @@ contract KYC {
     }
 
 
-    function modifyCustomer(string memory _userName, string memory _updatedData) public {
-        require(customers[_userName].bank != address(0), "Customer not found");
-
-        customers[_userName].data = _updatedData;
+    function modifyCustomer(string memory _userName, string memory _updatedData) public customerExists(_userName){
+           customers[_userName].data = _updatedData;
     }
 
 
-    function viewCustomerData(string memory _userName) public view returns (string memory, string memory, address){
-        require(customers[_userName].bank != address(0), "Customer not found");
-
+    function viewCustomerData(string memory _userName) public view customerExists(_userName) returns (string memory, string memory, address){
+        
         return (customers[_userName].userName, customers[_userName].data, customers[_userName].bank);
     }
 
-    function upVoteCustomer(string memory _userName) public {
-        require(customers[_userName].bank != address(0), "Customer not found");
+    function upVoteCustomer(string memory _userName) public customerExists(_userName) {
         customers[_userName].upVotes += 1;
 
-
-        if(totalBanks >=5){
-           
-            customers[_userName].kycStatus = customers[_userName].downVotes < (totalBanks / 3);
-            
+        if(totalBanks >=5){       
+            customers[_userName].kycStatus = customers[_userName].downVotes < (totalBanks / 3);           
         }else{
             customers[_userName].kycStatus = customers[_userName].upVotes > customers[_userName].downVotes;
         }
 
     }
     
-    function downVoteCustomer(string memory _userName) public {
-        require(customers[_userName].bank != address(0), "Customer not found");
+    function downVoteCustomer(string memory _userName) public customerExists(_userName) {
         customers[_userName].downVotes += 1;
 
-        if(totalBanks >=5){
-            
+        if(totalBanks >=5){       
             customers[_userName].kycStatus = customers[_userName].downVotes < (totalBanks / 3);
             
         }else{
@@ -123,19 +114,15 @@ contract KYC {
 
     }
 
-    function getBankComplaints(address _bankAddress ) public view returns(uint8){
-        require(banks[_bankAddress].bankAddress != address(0), "Bank not found");
-
+    function getBankComplaints(address _bankAddress ) public view bankExists(_bankAddress) returns(uint8){
         return banks[_bankAddress].complaintsReported;
     }
 
-    function viewBankDetails(address _bankAddress) public view returns (Bank memory){
-        require(banks[_bankAddress].bankAddress != address(0), "Bank not found");
+    function viewBankDetails(address _bankAddress) public view  bankExists(_bankAddress) returns (Bank memory){
         return banks[_bankAddress];
     }
 
-    function reportBank(address _bankAddress) public {
-        require(banks[_bankAddress].bankAddress != address(0), "Bank not found");
+    function reportBank(address _bankAddress) public  bankExists(_bankAddress) {
 
         banks[_bankAddress].complaintsReported +=1;
 
