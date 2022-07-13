@@ -147,6 +147,8 @@ contract KYC {
         banks[_bankAddress].kycCount = 0;
         banks[_bankAddress].isAllowedToVote = true;
         banks[_bankAddress].complaintsReported = 0;
+
+        totalBanks +=1;
     }
 
 
